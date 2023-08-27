@@ -281,64 +281,34 @@ int RunsTest()
         return 1;
     }
 
-    double Pi0 = 0.1174;
-    double Pi1 = 0.2430;
-    double Pi2 = 0.2493;
-    double Pi3 = 0.1752;
-    double Pi4 = 0.1027;
-    double Pi5 = 0.1124;
     std::string line;
     while (std::getline(inputFile, line)) {
-        double number = 0;
-        double v0 = 0;
-        double v1 = 0;
-        double v2 = 0;
-        double v3 = 0;
-        double v4 = 0;
-        double v5 = 0;
-        double currentRun = 0;
-        double maxRun = 0;
-        for(int i = 0; i < line.length(); i++){
-            if (line[i] == '1') {
-                currentRun++;
-                if (currentRun > maxRun) {
-                    maxRun = currentRun;
-                }
-                number++;
-            } else {
-                currentRun = 0;
-                number++;
-            }
-            if(number == 128){
-                currentRun = 0;
-                number = 0;
-                if(maxRun <= 4){v0++;}
-                if(maxRun == 5){v1++;}
-                if(maxRun == 6){v2++;}
-                if(maxRun == 7){v3++;}
-                if(maxRun == 8){v4++;}
-                if(maxRun >= 9){v5++;}
-                maxRun = 0;
+        double numberOfOnes = 0;
+        for (char bit : line) {
+            if(bit == '1'){
+                numberOfOnes++;
             }
         }
+        int runs = 1;
+        char lastOne = line[0];
+        for(int i = 1; i < line.length(); i++){
+            if(lastOne != line[i]){
+                runs++;
+                lastOne = line[i];
+            }
+        }
+        double Pi = numberOfOnes/line.length();
 
-        double v0obs = pow((v0 - (49*Pi0)), 2)/(49*Pi0);
-        double v1obs = pow((v1 - (49*Pi1)), 2)/(49*Pi1);
-        double v2obs = pow((v2 - (49*Pi2)), 2)/(49*Pi2);
-        double v3obs = pow((v3 - (49*Pi3)), 2)/(49*Pi3);
-        double v4obs = pow((v4 - (49*Pi4)), 2)/(49*Pi4);
-        double v5obs = pow((v5 - (49*Pi5)), 2)/(49*Pi5);
-
-        double x2obs = v0obs + v1obs + v2obs + v3obs + v4obs + v5obs;
-
-        double pValue = gsl_sf_gamma_inc_Q(5.0/2.0, x2obs/2.0);
+        double erfc = abs(runs-(2.0*line.length()*Pi*(1-Pi)))/(2*(sqrt(2*line.length())*Pi*(1-Pi)));
+        double normalDistribution = 0.5 * (1.0 + erf(erfc));
+        double pValue = 2.0 * (1.0 - normalDistribution);
 
         std::string random = "TRUE";
         if(pValue < 0.01){
             random = "FALSE";
         }
 
-        outputFile << v0 << ";&;" << v1 << ";&;" << v2 << ";&;" << v3 << ";&;" << v4 << ";&;" << v5 << ";\\\\" << " Random: " << random << std::endl;
+        outputFile << numberOfOnes << ";&;" << runs << ";&;" << Pi << ";&;" << pValue << ";&;" << random << ";\\\\" << std::endl;
     }
 
     inputFile.close();
