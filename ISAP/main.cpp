@@ -1,8 +1,8 @@
 
 #include "api.h"
 #include "crypto_aead.h"
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #define CRYPTO_BYTES 64
 
@@ -49,8 +49,8 @@ int main (int argc, char *argv[]) {
         return(0);
     }
 
-    strcpy(plaintext,pl);
-    strcpy(ad,add);
+    strcpy(reinterpret_cast<char *>(plaintext), pl);
+    strcpy(reinterpret_cast<char *>(ad), add);
     hextobyte(keyhex,key);
     hextobyte(nonce,npub);
 
@@ -63,7 +63,8 @@ int main (int argc, char *argv[]) {
     printf("Plaintext: %s\n",plaintext);
 
 
-    int ret = crypto_aead_encrypt(cipher,&clen,plaintext,strlen(plaintext),ad,strlen(ad),nsec,npub,key);
+    int ret = crypto_aead_encrypt(cipher, &clen, plaintext, strlen(reinterpret_cast<const char *>(plaintext)), ad, strlen(
+            reinterpret_cast<const char *>(ad)), nsec, npub, key);
 
 
     string2hexString(cipher,clen,chex);
@@ -72,7 +73,7 @@ int main (int argc, char *argv[]) {
 
 
 
-    ret = crypto_aead_decrypt(plaintext,&mlen,nsec,cipher,clen,ad,strlen(ad),npub,key);
+    ret = crypto_aead_decrypt(plaintext, &mlen, nsec, cipher, clen, ad, strlen(reinterpret_cast<const char *>(ad)), npub, key);
 
     plaintext[mlen]='\0';
     printf("Plaintext: %s, Len: %llu\n",plaintext, mlen);
@@ -109,7 +110,7 @@ void *hextobyte(char *hexstring, unsigned char* bytearray ) {
     int str_len = strlen(hexstring);
 
     for (i = 0; i < (str_len / 2); i++) {
-        sscanf(hexstring + 2*i, "%02x", &bytearray[i]);
+        sscanf(hexstring + 2*i, "%2s", &bytearray[i]);
     }
 
 }
